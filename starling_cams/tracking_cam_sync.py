@@ -19,15 +19,15 @@ class TrackingCamSync(Node):
         self.info_msg = self.create_info_msg(intrinsics)
 
         qos_profile = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT,
+            reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.VOLATILE,
             history=HistoryPolicy.KEEP_LAST,
             depth=1
         )
 
         input_cam_topic = "/tracking_down"
-        output_image_topic = "/tracking_down/image_raw"
-        output_info_topic = "/tracking_down/image_info"
+        output_image_topic = "/camera_down/image_raw"
+        output_info_topic = "/camera_down/image_info"
 
         self.voxl_image_sub_ = self.create_subscription(
                 Image,
@@ -91,10 +91,12 @@ class TrackingCamSync(Node):
         return info_msg
 
     def image_callback(self, msg):
-        timestamp = msg.Header.stamp
-        frame_id = msg.Header.frame_id
-        self.info_msg.Header.stamp = timestamp
-        self.info_msg.Header.frame_id = frame_id
+        self.get_logger().info("Got image callback")
+
+        timestamp = msg.header.stamp
+        frame_id = msg.header.frame_id
+        self.info_msg.header.stamp = timestamp
+        self.info_msg.header.frame_id = frame_id
         self.tracking_info_pub_.publish(self.info_msg)
         self.tracking_image_pub_.publish(msg)
 
