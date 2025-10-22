@@ -18,8 +18,14 @@ class TrackingCamSync(Node):
         intrinsics = self.get_instrinsics(config_data)
         self.info_msg = self.create_info_msg(intrinsics)
 
-        qos_profile = QoSProfile(
+        sub_qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        pub_qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
             durability=DurabilityPolicy.VOLATILE,
             history=HistoryPolicy.KEEP_LAST,
             depth=1
@@ -27,23 +33,23 @@ class TrackingCamSync(Node):
 
         input_cam_topic = "/tracking_down"
         output_image_topic = "/camera_down/image_raw"
-        output_info_topic = "/camera_down/image_info"
+        output_info_topic = "/camera_down/camera_info"
 
         self.voxl_image_sub_ = self.create_subscription(
                 Image,
                 input_cam_topic,
                 self.image_callback,
-                qos_profile
+                sub_qos_profile
                 )
         self.tracking_image_pub_ = self.create_publisher(
                 Image,
                 output_image_topic,
-                qos_profile
+                pub_qos_profile
                 )
         self.tracking_info_pub_ = self.create_publisher(
                 CameraInfo,
                 output_info_topic,
-                qos_profile
+                pub_qos_profile
                 )
 
     def load_intrinsics_cfg(self, fn: str) -> dict:
@@ -91,8 +97,7 @@ class TrackingCamSync(Node):
         return info_msg
 
     def image_callback(self, msg):
-        self.get_logger().info("Got image callback")
-
+        #self.get_logger().info("Got image callback")
         timestamp = msg.header.stamp
         frame_id = msg.header.frame_id
         self.info_msg.header.stamp = timestamp
