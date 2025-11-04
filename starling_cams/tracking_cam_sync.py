@@ -123,7 +123,7 @@ class TrackingCamSync(Node):
         self.tracking_info_pub_.publish(self.info_msg)
         self.tracking_image_pub_.publish(msg)
         # Debug output to be sent to the GCS
-        if self.debug and self.spam_cnt > self.self.spam_rate:
+        if self.debug and self.spam_cnt > self.spam_rate:
             self.debug_image_pub_.publish(msg)
             self.spam_cnt = 0
 
