@@ -16,7 +16,7 @@ class TrackingCamSync(Node):
         self.declare_parameter("debug", rclpy.Parameter.Type.BOOL)
         self.debug = self.get_parameter("debug").get_parameter_value().bool_value
         self.declare_parameter("spam_rate", rclpy.Parameter.Type.INTEGER) # logging in callback every 5 seconds
-        self.spam_rate = self.get_parameter("spam_rate").get_parameter_value().int_value
+        self.spam_rate = self.get_parameter("spam_rate").get_parameter_value().integer_value
         self.get_logger().info(f"Debug mode: {self.debug}")
         self.get_logger().info(f"Spam rate: {self.spam_rate}")
 
