@@ -63,7 +63,7 @@ class TrackingCamSync(Node):
                 )
 
         if self.debug:
-            debug_image_topic = "/camer_down_debug/image_raw"
+            debug_image_topic = "/camera_down_debug/image_raw"
             self.debug_image_pub_ = self.create_publisher(
                     Image,
                     debug_image_topic,
