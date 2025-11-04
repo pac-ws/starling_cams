@@ -11,8 +11,16 @@ from sensor_msgs.msg import Image, CameraInfo
 class TrackingCamSync(Node):
     def __init__(self):
         super().__init__("tracking_cam_sync")
+
+        # Parameters
+        self.declare_parameter("debug", False)
+        self.debug = self.get_parameter("debug").get_parameter_value().bool_value
+        self.declare_parameter("spam_rate", 125) # logging in callback every 5 seconds
+        self.spam_rate = self.get_parameter("spam_rate").get_parameter_value().int_value
+        self.get_logger().info(f"Debug mode: {self.debug}")
+        self.get_logger().info(f"Spam rate: {self.spam_rate}")
+
         self.spam_cnt = 0
-        self.SPAM_RATE = 125 # logging in callback every 5 seconds
 
         #pkg_share = get_package_share_directory("starling_cams")
         tracking_intrinsics_fn = os.path.join("/workspace/src/starling_cams/cam_configs", "opencv_tracking_down_intrinsics.yml")
@@ -53,7 +61,14 @@ class TrackingCamSync(Node):
                 output_info_topic,
                 pub_qos_profile
                 )
-        self.get_logger().info('Finished initializing pubs and subs for cam sync')
+
+        if self.debug:
+            debug_image_topic = "/camer_down_debug/image_raw"
+            self.debug_image_pub_ = self.create_publisher(
+                    Image,
+                    debug_image_topic,
+                    pub_qos_profile
+                    )
 
     def load_intrinsics_cfg(self, fn: str) -> dict:
         with open(fn, "r") as file:
@@ -100,9 +115,6 @@ class TrackingCamSync(Node):
         return info_msg
 
     def image_callback(self, msg):
-        if self.spam_cnt > self.SPAM_RATE:
-            self.get_logger().info(f"Got image callback (every {self.SPAM_RATE})")
-            self.spam_cnt = 0
         self.spam_cnt += 1
         timestamp = msg.header.stamp
         frame_id = msg.header.frame_id
@@ -110,6 +122,10 @@ class TrackingCamSync(Node):
         self.info_msg.header.frame_id = frame_id
         self.tracking_info_pub_.publish(self.info_msg)
         self.tracking_image_pub_.publish(msg)
+        # Debug output to be sent to the GCS
+        if self.debug and self.spam_cnt > self.self.spam_rate:
+            self.debug_image_pub_.publish(msg)
+            self.spam_cnt = 0
 
 def main(args=None):
     rclpy.init(args=args)
